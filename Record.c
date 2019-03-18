@@ -73,12 +73,13 @@ void error(char *str)
 }
 
 /*提取输入的字符串，返回需要调用的函数*/
-Func GetStr( Func func, char *buf, char *str, int argc)
+void 
+GetStr( Func func, char *buf, char *str, int argc, FILE *fptr)
 {
     if( argc < 3 )
         error("Lack of Message");
     strcpy( buf, str);
-    return func;
+    func(fptr, buf);
 }
 
 Func GetHelpMsg(char *cmd)
@@ -95,8 +96,8 @@ Func GetHelpMsg(char *cmd)
 }
 
 /*提取以‘-’开始的参数，不支持混合参数*/
-Func
-extract_argv(int argc, char **argv, char *buf)
+void
+extract_argv(int argc, char **argv, char *buf, FILE *fptr)
 {
     for(int i=1; i<argc; i++)
     {
@@ -105,16 +106,16 @@ extract_argv(int argc, char **argv, char *buf)
             switch(argv[i][1])
             {   
                 case 'c': 
-                    return GetStr(check, buf, argv[argc-i], argc);
+                    GetStr(check, buf, argv[argc-i], argc, fptr);
 
                 case 'n':
-                    return GetStr(new, buf, argv[argc-i], argc);
+                    GetStr(new, buf, argv[argc-i], argc, fptr);
 
                 case 'l':
-                    return GetStr(check, buf, "\n", 3);
+                    check(fptr, strcpy(buf, "\n")) ;
 
                 case 'h':
-                    return GetHelpMsg(argv[0]);
+                    GetHelpMsg(argv[0]);
 
                 default:   error("Input error <switch>");
             }
@@ -146,8 +147,7 @@ int main(int argc, char **argv)
 
     char buf[ MAX_LEN ];
 
-    /*根据返回的函数指针调用对应函数*/
-    extract_argv(argc, argv, buf)(fptr, buf);
+    extract_argv(argc, argv, buf, fptr);
 
     fclose(fptr);
 
