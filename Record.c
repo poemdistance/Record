@@ -7,6 +7,18 @@
 #define Space ( ' ' )
 typedef void (*Func)(FILE *, char *);
 
+/*请将下面的文件路径修改成你需要存放的地方*/
+char BakFilePath[] = "/home/magnolia/Dropbox/Backup/HelpDb";
+
+/*调用vim打开保存助记信息的文件*/
+void openRecordFile()
+{
+    char cmd[sizeof(BakFilePath) + sizeof("vim") + 2];
+    strcpy(cmd, "vim ");
+    strcat(cmd, BakFilePath);
+    system(cmd);
+}
+
 /*逐行读取匹配字符串，若包含输入的str，则打印出来*/
 void 
 check(FILE *fptr, char *str)
@@ -82,7 +94,8 @@ GetStr( Func func, char *buf, char *str, int argc, FILE *fptr)
     func(fptr, buf);
 }
 
-Func GetHelpMsg(char *cmd)
+/*打印帮助信息*/
+void GetHelpMsg(char *cmd)
 {
     printf("Usage: command [option] [message]\n");
     printf("Example: [%s -n \"ls -- 列出文件列表 -- ls -lh\"]  : <Insert new line into your file>\n", cmd);
@@ -91,12 +104,10 @@ Func GetHelpMsg(char *cmd)
     printf("\t [%s -l]: <List all messages in your file>\n", cmd);
 
     printf("\nNote: command are between []\n");
-    exit(0);
-    return NULL;
 }
 
 /*提取以‘-’开始的参数，不支持混合参数*/
-void
+void*
 extract_argv(int argc, char **argv, char *buf, FILE *fptr)
 {
     for(int i=1; i<argc; i++)
@@ -106,29 +117,29 @@ extract_argv(int argc, char **argv, char *buf, FILE *fptr)
             switch(argv[i][1])
             {   
                 case 'c': 
-                    GetStr(check, buf, argv[argc-i], argc, fptr);
+                    GetStr(check, buf, argv[argc-i], argc, fptr);break;
 
                 case 'n':
-                    GetStr(new, buf, argv[argc-i], argc, fptr);
+                    GetStr(new, buf, argv[argc-i], argc, fptr);break;
 
                 case 'l':
-                    check(fptr, strcpy(buf, "\n")) ;
+                    check(fptr, strcpy(buf, "\n"));break;
 
                 case 'h':
-                    GetHelpMsg(argv[0]);
+                    GetHelpMsg(argv[0]);break;
 
-                default:   error("Input error <switch>");
+                case 'o':
+                    openRecordFile();break;
+
+                default:   if(i == 1) error("Input error <switch>");
             }
     }
-    error("Input error <after for loop>");
 }
 
 int main(int argc, char **argv)
-{
-    //printf("cmd/func     effect     example\n");
-
-    if(argc < 2) {
-        printf("Need arguments\n");
+{ 
+    //printf("cmd/func     effect     example\n"); 
+    if(argc < 2) { printf("Need arguments\n");
         return 0;
     }
 
@@ -137,9 +148,6 @@ int main(int argc, char **argv)
         GetHelpMsg(argv[0]);
         return 0;
     }
-
-    /*请将下面的文件路径修改成你需要存放的地方*/
-    char BakFilePath[] = "/home/magnolia/Dropbox/Backup/HelpDb";
 
     FILE *fptr = NULL;
     fptr = fopen(BakFilePath, "a+");
